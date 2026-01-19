@@ -8,19 +8,17 @@ const {
   updateBalance,
 } = require("../controllers/authController");
 
-const auth = require("../middleware/auth");  // middleware (without 's')
+const { authMiddleware } = require("../middlewares/auth");  
 const {
   validateRegister,
   validateLogin,
   validateBalance,
-} = require("../middleware/validation");  // middleware (without 's')
+} = require("../middlewares/validation");  
 
-// Public routes
 router.post("/register", validateRegister, register);
 router.post("/login", validateLogin, login);
 
-// Protected routes
-router.get("/profile", auth, getProfile);
-router.patch("/balance", auth, validateBalance, updateBalance);
+router.get("/profile", authMiddleware, getProfile);
+router.patch("/balance", authMiddleware, validateBalance, updateBalance);
 
 module.exports = router;

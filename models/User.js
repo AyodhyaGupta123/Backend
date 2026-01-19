@@ -21,7 +21,8 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Password zaroori hai'],
-    minlength: [6, 'Password kam se kam 6 characters ka hona chahiye']
+    minlength: [6, 'Password kam se kam 6 characters ka hona chahiye'],
+    select: false
   },
   balance: {
     type: Number,
@@ -40,35 +41,20 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Password hashing middleware - save se pehle
-userSchema.pre('save', async function(next) {
-  // Agar password modify nahi hua to skip karo
+userSchema.pre('save', async function() {
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
   
-  try {
-    // Salt generate karo
-    const salt = await bcrypt.genSalt(10);
-    
-    // Password ko hash karo
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
+  const salt = await bcrypt.genSalt(10);
+  
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Password comparison method
 userSchema.methods.comparePassword = async function(candidatePassword) {
-  try {
-    return await bcrypt.compare(candidatePassword, this.password);
-  } catch (error) {
-    throw new Error('Password comparison failed');
-  }
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// User object ko JSON mein convert karte waqt password hide karo
 userSchema.methods.toJSON = function() {
   const userObject = this.toObject();
   delete userObject.password;
@@ -76,12 +62,10 @@ userSchema.methods.toJSON = function() {
   return userObject;
 };
 
-// Static method - email se user dhundo
 userSchema.statics.findByEmail = function(email) {
   return this.findOne({ email: email.toLowerCase() });
 };
 
-// Static method - username se user dhundo
 userSchema.statics.findByUsername = function(username) {
   return this.findOne({ username });
 };

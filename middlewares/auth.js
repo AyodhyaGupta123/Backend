@@ -1,86 +1,95 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Authentication middleware - token verify karta hai
+
 const authMiddleware = async (req, res, next) => {
   try {
-    // Header se token nikalo
+    // 1. Header se token nikalo
     const authHeader = req.header('Authorization');
     
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ 
+        success: false,
         error: 'Authentication token nahi mila. Pehle login karein.' 
       });
     }
 
-    // "Bearer TOKEN" format se token extract karo
+    // 2. Token extract karo
     const token = authHeader.replace('Bearer ', '');
 
-    if (!token) {
+    // 3. Token verify karo
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const idToFind = decoded.userId || decoded.id || decoded.sub;
+
+    if (!idToFind) {
       return res.status(401).json({ 
-        error: 'Invalid token format' 
+        success: false,
+        error: 'Token structure invalid hai. Payload mein ID nahi mili.' 
       });
     }
 
-    // Token verify karo
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Database se user dhundo
-    const user = await User.findById(decoded.userId).select('-password');
+    // 4. Database se user dhundo (Password ko exclude karke)
+    const user = await User.findById(idToFind).select('-password');
 
     if (!user) {
       return res.status(401).json({ 
-        error: 'User nahi mila. Token invalid hai.' 
+        success: false,
+        error: 'User nahi mila. Account exist nahi karta ya token invalid hai.' 
       });
     }
 
-    // User ko request object mein attach karo
     req.user = user;
-    req.userId = decoded.userId;
+    req.userId = user._id; 
     req.token = token;
 
     next();
   } catch (error) {
+
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({ 
+        success: false,
         error: 'Invalid token. Phir se login karein.' 
       });
     }
     
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ 
-        error: 'Token expire ho gaya hai. Phir se login karein.' 
+        success: false,
+        error: 'Aapka session expire ho gaya hai. Dobara login karein.' 
       });
     }
 
     console.error('Auth Middleware Error:', error);
     res.status(500).json({ 
-      error: 'Authentication mein problem aayi' 
+      success: false,
+      error: 'Internal Server Error: Authentication failed' 
     });
   }
 };
 
-// Optional authentication - agar token hai to verify karo, nahi to bhi chalne do
 const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.header('Authorization');
     
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return next();
     }
 
     const token = authHeader.replace('Bearer ', '');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select('-password');
+    
+    const idToFind = decoded.userId || decoded.id;
+    const user = await User.findById(idToFind).select('-password');
 
     if (user) {
       req.user = user;
-      req.userId = decoded.userId;
+      req.userId = user._id;
     }
 
     next();
   } catch (error) {
-    // Error ko ignore karo aur aage badho
+  
     next();
   }
 };

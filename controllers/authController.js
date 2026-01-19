@@ -105,8 +105,8 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // User ko email se dhundo
-    const user = await User.findByEmail(email);
+    // User ko email se dhundo aur password field ko include karo
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
 
     if (!user) {
       return res.status(401).json({ 
@@ -153,18 +153,45 @@ const getProfile = async (req, res) => {
   }
 };
 
-// Update Balance Controller
+// Update Balance Controller - FIXED
 const updateBalance = async (req, res) => {
   try {
     const { amount } = req.body;
 
-    // User ko update karo
-    req.user.balance = amount;
+    // Validate amount
+    if (amount === undefined || amount === null) {
+      return res.status(400).json({ 
+        error: 'Amount zaroori hai' 
+      });
+    }
+
+    if (typeof amount !== 'number' || amount < 0) {
+      return res.status(400).json({ 
+        error: 'Amount ek valid positive number hona chahiye' 
+      });
+    }
+
+    // Balance ko add karo (replace nahi karo)
+    req.user.balance += amount;
+
+    // Check karein balance negative to nahi hua
+    if (req.user.balance < 0) {
+      return res.status(400).json({ 
+        error: 'Insufficient balance. Itna amount add nahi kar sakte.' 
+      });
+    }
+
+    // Database mein save karo
     await req.user.save();
 
     res.json({
       message: 'Balance successfully update ho gaya',
-      balance: req.user.balance
+      user: {
+        id: req.user._id,
+        username: req.user.username,
+        email: req.user.email,
+        balance: req.user.balance
+      }
     });
 
   } catch (error) {
