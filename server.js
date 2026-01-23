@@ -17,7 +17,7 @@ const priceWS = require("./websocket/priceWebSocket");
 const app = express();
 
 // Middleware
-const corsOptions = {
+app.use(cors({
   origin: [
     "https://www.pasameme.in",
     "https://meme-ou3u.vercel.app"
@@ -25,10 +25,7 @@ const corsOptions = {
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+}));
 
 app.use(express.json());
 
