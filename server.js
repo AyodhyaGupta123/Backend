@@ -17,7 +17,15 @@ const priceWS = require("./websocket/priceWebSocket");
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://meme-ou3u.vercel.app",
+    "https://www.pasameme.in"
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+}));
+
 app.use(express.json());
 
 // Database Connection
