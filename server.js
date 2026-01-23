@@ -25,21 +25,19 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin like Postman or mobile apps
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); 
     if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = "The CORS policy for this site does not allow access from the specified Origin.";
-      return callback(new Error(msg), false);
+      return callback(new Error("Not allowed by CORS"), false);
     }
     return callback(null, true);
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"]
 }));
 
-// Handle preflight requests for all routes
-app.options("*", cors());
+// Handle preflight requests safely
+app.options(/.*/, cors());
 
 // ===================== MIDDLEWARE =====================
 app.use(express.json());
