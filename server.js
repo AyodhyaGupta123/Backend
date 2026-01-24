@@ -11,57 +11,59 @@ const headerRoutes = require("./routes/headerRoutes");
 const tradeRoutes = require("./routes/tradeRoutes");
 const priceRoutes = require("./routes/priceRoutes");
 
-// IMPORT: Ensure this matches your singleton export (module.exports = priceWSInstance)
 const priceWS = require("./websocket/priceWebSocket");
 
 const app = express();
 
-// ===================== CORS FIX =====================
-// Allow your frontend domains and handle preflight requests
+// ===================== 1. SIMPLIFIED CORS (BEST FOR PRODUCTION) =====================
 const allowedOrigins = [
   "https://www.pasameme.in",
   "https://meme-ou3u.vercel.app"
 ];
 
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true); 
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error("Not allowed by CORS"), false);
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
-    return callback(null, true);
   },
   credentials: true,
-  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"]
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// Handle preflight requests safely
-app.options(/.*/, cors());
+// Pre-flight requests ko handle karne ke liye (Ye zaroori hai)
+app.options("*", cors());
 
-// ===================== MIDDLEWARE =====================
+// ===================== 2. MIDDLEWARE =====================
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ===================== DATABASE =====================
+// ===================== 3. DATABASE CONNECTION =====================
 connectDB();
 
-// ===================== ROUTES =====================
+// ===================== 4. ROUTES =====================
+// Base route for health check
+app.get("/", (req, res) => res.send("API is running..."));
+
 app.use("/api/auth", authRoutes);
 app.use("/api/header", headerRoutes);
 app.use("/api/trade", tradeRoutes);
 app.use("/api/prices", priceRoutes);
 
-// ===================== HTTP SERVER =====================
+// ===================== 5. HTTP SERVER & WEBSOCKET =====================
 const server = http.createServer(app);
 
-// Initialize WebSocket with the HTTP server
-if (priceWS.init) {
+if (priceWS && typeof priceWS.init === 'function') {
   priceWS.init(server);
 }
 
 const PORT = process.env.PORT || 5000;
 
-// Use server.listen for WebSocket support
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
