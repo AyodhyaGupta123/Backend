@@ -15,7 +15,7 @@ const priceWS = require("./websocket/priceWebSocket");
 
 const app = express();
 
-// ===================== CORS SETUP (FIXED) =====================
+// ===================== 1. CORS SETUP (FINAL FIX) =====================
 const allowedOrigins = [
   "https://www.pasameme.in",
   "https://meme-ou3u.vercel.app"
@@ -23,9 +23,12 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl)
+    // Bina origin wali requests (jaise Postman/Curl) ko allow karein
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('vercel.app')) {
+    
+    const isAllowed = allowedOrigins.includes(origin) || origin.endsWith('.vercel.app');
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -33,29 +36,32 @@ const corsOptions = {
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204 // Purane browsers ke liye
 };
 
-// CORS ko middleware ki tarah use karein (Ye crash-free hai)
+// CORS ko sabse pehle apply karein
 app.use(cors(corsOptions));
+
+// Pre-flight requests ko explicitly handle karein
+app.options('*', cors(corsOptions)); 
 
 // ===================== 2. MIDDLEWARE =====================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ===================== 3. DATABASE CONNECTION =====================
+// ===================== 3. DATABASE =====================
 connectDB();
 
 // ===================== 4. ROUTES =====================
-// Base route for health check
-app.get("/", (req, res) => res.send("API is running..."));
+app.get("/", (req, res) => res.status(200).send("API is running..."));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/header", headerRoutes);
 app.use("/api/trade", tradeRoutes);
 app.use("/api/prices", priceRoutes);
 
-// ===================== 5. HTTP SERVER & WEBSOCKET =====================
+// ===================== 5. SERVER & WEBSOCKET =====================
 const server = http.createServer(app);
 
 if (priceWS && typeof priceWS.init === 'function') {
