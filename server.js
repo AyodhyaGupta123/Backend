@@ -37,7 +37,7 @@ app.use(cors({
 }));
 
 // Pre-flight requests ko handle karne ke liye (Ye zaroori hai)
-app.options("*", cors());
+app.options('(.*)', cors());
 
 // ===================== 2. MIDDLEWARE =====================
 app.use(express.json());
