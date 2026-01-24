@@ -15,15 +15,15 @@ const priceWS = require("./websocket/priceWebSocket");
 
 const app = express();
 
-// ===================== 1. SIMPLIFIED CORS (BEST FOR PRODUCTION) =====================
+// ===================== CORS SETUP (FIXED) =====================
 const allowedOrigins = [
   "https://www.pasameme.in",
   "https://meme-ou3u.vercel.app"
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl requests)
+    // allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('vercel.app')) {
       callback(null, true);
@@ -34,10 +34,10 @@ app.use(cors({
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
-}));
+};
 
-// Pre-flight requests ko handle karne ke liye (Ye zaroori hai)
-app.options('(.*)', cors());
+// CORS ko middleware ki tarah use karein (Ye crash-free hai)
+app.use(cors(corsOptions));
 
 // ===================== 2. MIDDLEWARE =====================
 app.use(express.json());
