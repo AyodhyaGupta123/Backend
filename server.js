@@ -15,13 +15,6 @@ const priceWS = require("./websocket/priceWebSocket");
 
 const app = express();
 
-// ===================== CORS FINAL FIX =====================
-app.use(cors({
-  origin: true, // Sabhi verified requests ko allow karega
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
 
 // Preflight error fix (Strictly use this syntax for Node 22)
 app.use((req, res, next) => {
@@ -33,6 +26,16 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// ===================== CORS FINAL FIX =====================
+app.use(cors({
+  origin: ["https://www.pasameme.in/","www.pasameme.in"], // Sabhi verified requests ko allow karega
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+
 
 // ===================== MIDDLEWARE =====================
 app.use(express.json());
