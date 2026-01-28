@@ -36,8 +36,6 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.options('/:any*', cors());
-
 
 // ===================== MIDDLEWARE =====================
 app.use(express.json());
