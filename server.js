@@ -27,9 +27,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// ===================== CORS FINAL FIX =====================
+// ===================== CORS FINAL FIX ===================== //
 app.use(cors({
-  origin: ["https://www.pasameme.in/","www.pasameme.in"], // Sabhi verified requests ko allow karega
+  origin: ["https://www.pasameme.in/" , "www.pasameme.in" , "http://pasameme.in" , "http://www.pasameme.in" ], 
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
