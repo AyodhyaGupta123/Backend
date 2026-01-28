@@ -16,30 +16,25 @@ const priceWS = require("./websocket/priceWebSocket");
 const app = express();
 
 
-// Preflight error fix (Strictly use this syntax for Node 22)
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    return res.sendStatus(204);
-  }
-  next();
-});
+const allowedOrigins = [
+  "https://www.pasameme.in",
+  "https://pasameme.in",
+  "http://localhost:5173" 
+];
 
-// ===================== CORS FINAL FIX ===================== //
 app.use(cors({
-  origin: [
-    "https://www.pasameme.in", // Slash hata diya
-    "https://pasameme.in",     // https add kiya
-    "http://www.pasameme.in", 
-    "http://pasameme.in"
-  ], 
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
-
 
 
 // ===================== MIDDLEWARE =====================
