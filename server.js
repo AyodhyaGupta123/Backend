@@ -29,7 +29,12 @@ app.use((req, res, next) => {
 
 // ===================== CORS FINAL FIX ===================== //
 app.use(cors({
-  origin: ["https://www.pasameme.in/" , "www.pasameme.in" , "http://pasameme.in" , "http://www.pasameme.in" ], 
+  origin: [
+    "https://www.pasameme.in", // Slash hata diya
+    "https://pasameme.in",     // https add kiya
+    "http://www.pasameme.in", 
+    "http://pasameme.in"
+  ], 
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
