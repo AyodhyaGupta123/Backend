@@ -13,28 +13,20 @@ const priceRoutes = require("./routes/priceRoutes");
 
 const priceWS = require("./websocket/priceWebSocket");
 
-const app = express();
-
-
+app.use(cors());
 const allowedOrigins = [
   "https://www.pasameme.in",
   "https://pasameme.in",
   "http://localhost:5173"
 ];
-
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  if (req.method === "OPTIONS") return res.sendStatus(200);
-  next();
-});
-
-
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
+    allowedHeaders: ["Content-Type","Authorization"],
+    credentials: true
+  })
+);
 
 // ===================== MIDDLEWARE =====================
 app.use(express.json());
