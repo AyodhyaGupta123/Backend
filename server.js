@@ -5,26 +5,38 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+// Create express app
+const app = express();
+
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const headerRoutes = require("./routes/headerRoutes");
 const tradeRoutes = require("./routes/tradeRoutes");
 const priceRoutes = require("./routes/priceRoutes");
-
 const priceWS = require("./websocket/priceWebSocket");
 
-app.use(cors());
+// ===================== CORS =====================
 const allowedOrigins = [
   "https://www.pasameme.in",
   "https://pasameme.in",
   "http://localhost:5173"
 ];
+
+// Use the cors package
 app.use(
   cors({
-    origin: allowedOrigins,
-    methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
-    allowedHeaders: ["Content-Type","Authorization"],
-    credentials: true
+    origin: function (origin, callback) {
+      // Allow requests with no origin like mobile apps or Postman
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 
