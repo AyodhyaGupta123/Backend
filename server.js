@@ -5,16 +5,7 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-// ===================== APP =====================
 const app = express();
-
-// ===================== DB & ROUTES =====================
-const connectDB = require("./config/db");
-const authRoutes = require("./routes/authRoutes");
-const headerRoutes = require("./routes/headerRoutes");
-const tradeRoutes = require("./routes/tradeRoutes");
-const priceRoutes = require("./routes/priceRoutes");
-const priceWS = require("./websocket/priceWebSocket");
 
 // ===================== CORS =====================
 const allowedOrigins = [
@@ -26,24 +17,33 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // Postman / curl
+      if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error("Not allowed by CORS"));
+      return callback(null, false);
     },
     credentials: true,
   })
 );
 
+// 🔥 THIS IS THE KEY FIX FOR RENDER
+app.options("*", cors());
+
 // ===================== MIDDLEWARE =====================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ===================== DATABASE =====================
+// ===================== DB & ROUTES =====================
+const connectDB = require("./config/db");
+const authRoutes = require("./routes/authRoutes");
+const headerRoutes = require("./routes/headerRoutes");
+const tradeRoutes = require("./routes/tradeRoutes");
+const priceRoutes = require("./routes/priceRoutes");
+const priceWS = require("./websocket/priceWebSocket");
+
 connectDB();
 
-// ===================== ROUTES =====================
 app.get("/", (req, res) => {
   res.status(200).send("PasaMeme API Live");
 });
@@ -56,7 +56,7 @@ app.use("/api/prices", priceRoutes);
 // ===================== SERVER =====================
 const server = http.createServer(app);
 
-if (priceWS && priceWS.init) {
+if (priceWS?.init) {
   priceWS.init(server);
 }
 
