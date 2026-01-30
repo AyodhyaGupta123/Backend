@@ -19,6 +19,7 @@ const app = express();
 const allowedOrigins = [
   "https://www.pasameme.in",
   "https://pasameme.in",
+  "http://pasameme.in",
   "http://localhost:5173" 
 ];
 
