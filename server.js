@@ -7,28 +7,41 @@ dotenv.config();
 
 const app = express();
 
-// ===================== CORS =====================
-const allowedOrigins = [
-  "https://www.pasameme.in",
-  "https://pasameme.in",
-  "http://localhost:5173",
-];
-
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Allow server-to-server & Postman
       if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        "https://www.pasameme.in",
+        "https://pasameme.in",
+        "http://localhost:5173",
+      ];
+
       if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
       }
-      return callback(null, false);
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+
 // 🔥 THIS IS THE KEY FIX FOR RENDER
-app.options("*", cors());
+app.options("*", cors({
+  origin: [
+    "https://www.pasameme.in",
+    "https://pasameme.in",
+    "http://localhost:5173",
+  ],
+  credentials: true,
+}));
+
 
 // ===================== MIDDLEWARE =====================
 app.use(express.json());
